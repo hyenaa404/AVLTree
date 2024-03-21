@@ -34,11 +34,12 @@ public class AVLTree<T extends Comparable<T>> {
         AVLNode leftChild = father.getLeft();
         father.setLeft(leftChild.getRight());
 
+        if (father.getLeft() != null) {
+            father.getLeft().setParent(father);
+        }
         leftChild.setRight(father);
+        father.setParent(leftChild);
 
-        updateHeight(root);
-
-        // Return new root 
         return leftChild;
     }
 
@@ -46,26 +47,32 @@ public class AVLTree<T extends Comparable<T>> {
         AVLNode rightChild = father.getRight();
         father.setRight(rightChild.getLeft());
 
+        if (father.getRight() != null) {
+            father.getRight().setParent(father);
+        }
+
         rightChild.setLeft(father);
+        father.setParent(rightChild);
 
-        // Update heights       
-        updateHeight(root);
-
-        // Return new root 
+        
         return rightChild;
     }
 
     public AVLNode doubleRotateLeftRight(AVLNode father) {   // left rotate child, right rotate node    (rotate with left child)
-        father.setLeft(leftRotate(father.getLeft()));
+        AVLNode a = leftRotate(father.getLeft());
+        father.setLeft(a);
+        a.setParent(father);
         AVLNode rs = rightRotate(father);
-        updateHeight(root);
+
         return rs;
     }
 
     public AVLNode doubleRotateRightLeft(AVLNode father) {  // right rotate child, left rotate node    (rotate with right child)
-        father.setRight(rightRotate(father.getRight()));
+        AVLNode b = rightRotate(father.getRight());
+        father.setRight(b);
+        b.setParent(father);
         AVLNode rs = leftRotate(father);
-        updateHeight(root);
+
         return rs;
     }
 
@@ -108,8 +115,23 @@ public class AVLTree<T extends Comparable<T>> {
     }
 
     private void checkAndRotate(AVLNode<T> node) {
+
         AVLNode<T> newNode = null;
         if (node != null) {
+
+            boolean isRotate = false;
+            AVLNode<T> parent = null;
+            boolean isRightChild = false;
+            if (node != root) {
+                parent = node.getParent();
+                isRightChild = true;
+                if (parent.getLeft() == node) {
+
+                    isRightChild = false;
+
+                }
+            }
+
             int balance = getBalance(node);
             if (balance < -1) {
                 // Cây mất cân bằng về bên trái
@@ -118,30 +140,34 @@ public class AVLTree<T extends Comparable<T>> {
                 } else {
                     newNode = doubleRotateLeftRight(node);
                 }
+                isRotate = true;
             } else if (balance > 1) {
                 // Cây mất cân bằng về bên phải
                 if (getBalance(node.getRight()) >= 0) {
-                     newNode = leftRotate(node);
+                    newNode = leftRotate(node);
                 } else {
                     // Double rotate: right rotate child, then left rotate node
                     newNode = doubleRotateRightLeft(node);
                 }
+                isRotate = true;
             }
-            if (node != root && newNode != null) {
-                AVLNode<T> parent = node.getParent();
-                boolean isRightChild = true;
-                if(parent.getLeft()== node){
-                    isRightChild = false;
+            if (isRotate) {
+                if (parent != null && newNode != null) {
+                    if (isRightChild) {
+                        parent.setRight(newNode);
+                        newNode.setParent(parent);
+                    } else {
+                        parent.setLeft(newNode);
+                        newNode.setParent(parent);
+                    }
+                } else {
+                    root = newNode;
                 }
-                if(isRightChild){
-                    parent.setRight(newNode);
-                }else{
-                    parent.setLeft(newNode);
-                }
+                updateHeight(root);
             }
-            updateHeight(root);
-            checkAndRotate(node.getParent());
-
+            if (node != root) {
+                checkAndRotate(parent);
+            }
         }
     }
 
@@ -185,6 +211,7 @@ public class AVLTree<T extends Comparable<T>> {
 
     public void visit(AVLNode<T> p) {
         p.getData().toString();
+        System.out.println("height: " + p.getHeight());
     }
 
     public AVLNode<T> getRoot() {

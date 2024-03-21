@@ -15,7 +15,7 @@ import util.InputUtils;
  */
 public class Controller {
     public static void main(String[] args) {
-         int choice;
+        int choice;
         SolarSystemTree st = new SolarSystemTree();
         SolarSystem s1 = new SolarSystem("A1", 0.43, 6, 1.42, 0.41);
         SolarSystem s2 = new SolarSystem("B2", 0.34, 7, 1.52, 0.24);
